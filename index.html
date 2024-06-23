@@ -1,104 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Timer</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Double-Click Full Screen Example</title>
+  <style>
+    /* Optional CSS styles */
+    body, html {
+      height: 100%;
+      margin: 0;
+    }
+    #fullscreenOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div id="clock">30</div>
-    <input type="text" id="time-input" placeholder="Enter time in seconds">
-    <input type="color" id="color-input">
-    <button id="reset-button">Reset</button>
-    <button id="mute-button">Mute</button>
-    <button id="log-button">Show/Hide Log</button>
-    <button onclick="signIn()">Sign In with Google</button>
-    <button onclick="signOut()">Sign Out</button>
-    <div id="user-info"></div>
-    <div id="calendar" style="display: none;">
-        <h3>Workout Log</h3>
-        <ul id="log-list"></ul>
-    </div>
+  <div id="fullscreenOverlay">
+    Double-click anywhere on the screen to toggle full screen mode
+  </div>
 
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <script>
+    // Function to toggle full screen mode
+    function toggleFullScreen() {
+      var elem = document.documentElement; // Fullscreen the entire document
 
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD7Et0_VEScTKrHIwX1uFsRZY543Cx7gYY",
-            authDomain: "sporty-clock.firebaseapp.com",
-            projectId: "sporty-clock",
-            storageBucket: "sporty-clock.appspot.com",
-            messagingSenderId: "235575281192",
-            appId: "1:235575281192:web:0b6a3e25a44147a7d0971d",
-            measurementId: "G-3H955LDFN4"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Google Authentication
-        async function signIn() {
-            const provider = new GoogleAuthProvider();
-            try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                document.getElementById('user-info').textContent = `Hello, ${user.displayName}`;
-                fetchLogs(user.uid);
-            } catch (error) {
-                console.error('Error during sign-in:', error);
-            }
+      if (!document.fullscreenElement &&
+          !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
         }
-
-        async function signOut() {
-            try {
-                await firebaseSignOut(auth);
-                document.getElementById('user-info').textContent = '';
-            } catch (error) {
-                console.error('Error during sign-out:', error);
-            }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
         }
+      }
+    }
 
-        // Firestore functions
-        async function saveLog(uid, duration) {
-            try {
-                await addDoc(collection(db, 'workoutLogs'), {
-                    uid,
-                    duration,
-                    date: new Date().toISOString()
-                });
-                console.log('Log saved');
-                fetchLogs(uid);
-            } catch (error) {
-                console.error('Error saving log:', error);
-            }
-        }
-
-        async function fetchLogs(uid) {
-            try {
-                const q = query(collection(db, 'workoutLogs'), where('uid', '==', uid));
-                const querySnapshot = await getDocs(q);
-                const logList = document.getElementById('log-list');
-                logList.innerHTML = '';
-                querySnapshot.forEach((doc) => {
-                    const log = doc.data();
-                    const logItem = document.createElement('li');
-                    logItem.textContent = `Date: ${new Date(log.date).toLocaleString()}, Duration: ${log.duration} seconds`;
-                    logList.appendChild(logItem);
-                });
-            } catch (error) {
-                console.error('Error fetching logs:', error);
-            }
-        }
-    </script>
-    <script src="script.js" type="module"></script>
+    // Event listener for double-click on fullscreenOverlay
+    var fullscreenOverlay = document.getElementById("fullscreenOverlay");
+    fullscreenOverlay.addEventListener("dblclick", function() {
+      toggleFullScreen();
+    });
+  </script>
 </body>
 </html>
