@@ -1,0 +1,63 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.counter-section, .stopwatch-section {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#counter {
+    font-size: 100px;
+}
+
+#stopwatch {
+    font-size: 50px;
+}
+
+button, input {
+    margin: 5px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.hidden {
+    display: none;
+}
+
+#training-log {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 300px;
+    max-width: 100%;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 10px;
+    overflow: auto;
+    max-height: 300px;
+}
+
+#calendar {
+    background-color: white;
+    color: black;
+    padding: 5px;
+    border-radius: 10px;
+    height: 250px;
+    overflow: auto;
+}
