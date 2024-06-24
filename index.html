@@ -33,30 +33,27 @@
     <canvas id="progress-chart" width="400" height="200"></canvas>
     
     <script type="module">
-        // Import the functions you need from the SDKs you need
+        // Firebase configuration
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyD7Et0_VEScTKrHIwX1uFsRZY543Cx7gYY",
-            authDomain: "sporty-clock.firebaseapp.com",
-            projectId: "sporty-clock",
-            storageBucket: "sporty-clock.appspot.com",
-            messagingSenderId: "235575281192",
-            appId: "1:235575281192:web:0b6a3e25a44147a7d0971d",
-            measurementId: "G-3H955LDFN4"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Google Authentication
         async function signIn() {
             const provider = new GoogleAuthProvider();
             try {
@@ -78,7 +75,6 @@
             }
         }
 
-        // Firestore functions
         async function saveLog(uid, duration, category) {
             try {
                 await addDoc(collection(db, 'workoutLogs'), {
@@ -87,7 +83,6 @@
                     category,
                     date: new Date().toISOString()
                 });
-                console.log('Log saved');
                 fetchLogs(uid);
             } catch (error) {
                 console.error('Error saving log:', error);
@@ -111,7 +106,6 @@
             }
         }
 
-        // Countdown Timer
         let countdownInterval;
         let remainingTime;
         let isPaused = false;
@@ -173,7 +167,6 @@
             document.getElementById('clock').textContent = remainingTime;
         }
 
-        // Sound Notification
         let isMuted = false;
         const sounds = ['sounds/1.mp3', 'sounds/2.mp3', 'sounds/3.mp3', 'sounds/4.mp3', 'sounds/5.mp3', 'sounds/6.wav'];
 
@@ -188,7 +181,6 @@
             }
         }
 
-        // Stopwatch Feature
         let stopwatchInterval;
         let stopwatchTime = 0;
 
