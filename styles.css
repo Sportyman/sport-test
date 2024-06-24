@@ -26,3 +26,13 @@ input, button {
     padding: 10px;
     border-radius: 10px;
 }
+
+canvas {
+    margin-top: 20px;
+    background-color: white;
+}
+
+#stopwatch {
+    font-size: 2rem;
+    margin: 10px 0;
+}
