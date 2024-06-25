@@ -1,119 +1,186 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const counterElement = document.getElementById('counter');
-    const resetStartButton = document.getElementById('reset-start-btn');
-    const muteButton = document.getElementById('mute-btn');
-    const counterInput = document.getElementById('counter-input');
-    const stopwatchElement = document.getElementById('stopwatch');
-    const startButton = document.getElementById('start-btn');
-    const pauseButton = document.getElementById('pause-btn');
-    const stopButton = document.getElementById('stop-btn');
-    const toggleDocButton = document.getElementById('toggle-doc-btn');
-    const trainingLog = document.getElementById('training-log');
-    const beepSound = document.getElementById('beep-sound');
+// Firebase configuration
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    let counterTime = 4;
-    let counterInterval;
-    let isMuted = false;
-    let isCounting = false;
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
+};
 
-    let stopwatchInterval;
-    let stopwatchTime = 0;
-    let isStopwatchRunning = false;
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    function updateCounter() {
-        if (!isCounting) return;
-        if (counterTime > 0) {
-            counterElement.textContent = counterTime;
-            document.title = `Counter: ${counterTime}`;
-            if (counterTime <= 2) {
-                document.body.style.backgroundColor = 'red';
-            } else {
-                document.body.style.backgroundColor = 'black';
+async function signIn() {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        document.getElementById('user-info').textContent = `Hello, ${user.displayName}`;
+        fetchLogs(user.uid);
+    } catch (error) {
+        console.error('Error during sign-in:', error);
+    }
+}
+
+async function signOut() {
+    try {
+        await firebaseSignOut(auth);
+        document.getElementById('user-info').textContent = '';
+    } catch (error) {
+        console.error('Error during sign-out:', error);
+    }
+}
+
+async function saveLog(uid, duration, category) {
+    try {
+        await addDoc(collection(db, 'workoutLogs'), {
+            uid,
+            duration,
+            category,
+            date: new Date().toISOString()
+        });
+        fetchLogs(uid);
+    } catch (error) {
+        console.error('Error saving log:', error);
+    }
+}
+
+async function fetchLogs(uid) {
+    try {
+        const q = query(collection(db, 'workoutLogs'), where('uid', '==', uid));
+        const querySnapshot = await getDocs(q);
+        const logList = document.getElementById('log-list');
+        logList.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const log = doc.data();
+            const logItem = document.createElement('li');
+            logItem.textContent = `Date: ${new Date(log.date).toLocaleString()}, Duration: ${log.duration} seconds, Category: ${log.category}`;
+            logList.appendChild(logItem);
+        });
+    } catch (error) {
+        console.error('Error fetching logs:', error);
+    }
+}
+
+let countdownInterval;
+let remainingTime;
+let isPaused = false;
+
+function updateTabTitle(time) {
+    document.title = `Time: ${time}s`;
+}
+
+document.getElementById('start-button').addEventListener('click', () => {
+    const inputTime = parseInt(document.getElementById('time-input').value) || 30;
+    startTimer(inputTime);
+});
+
+document.getElementById('pause-button').addEventListener('click', () => {
+    pauseTimer();
+});
+
+document.getElementById('resume-button').addEventListener('click', () => {
+    resumeTimer();
+});
+
+document.getElementById('reset-button').addEventListener('click', () => {
+    resetTimer();
+});
+
+function startTimer(duration) {
+    clearInterval(countdownInterval);
+    remainingTime = duration;
+    updateClock();
+    countdownInterval = setInterval(() => {
+        if (!isPaused) {
+            remainingTime--;
+            updateClock();
+            updateTabTitle(remainingTime);
+            if (remainingTime <= 0) {
+                clearInterval(countdownInterval);
+                playSound();
+                saveLog(auth.currentUser.uid, duration, 'default');
             }
-            counterTime--;
-        } else {
-            if (!isMuted) beepSound.play();
-            counterTime = parseInt(counterInput.value) || 4;
-            setTimeout(updateCounter, 2000);
         }
+    }, 1000);
+}
+
+function pauseTimer() {
+    isPaused = true;
+}
+
+function resumeTimer() {
+    isPaused = false;
+}
+
+function resetTimer() {
+    clearInterval(countdownInterval);
+    document.getElementById('clock').textContent = '30';
+    updateTabTitle(30);
+}
+
+function updateClock() {
+    document.getElementById('clock').textContent = remainingTime;
+}
+
+let isMuted = false;
+const sounds = ['sounds/1.mp3', 'sounds/2.mp3', 'sounds/3.mp3', 'sounds/4.mp3', 'sounds/5.mp3', 'sounds/6.wav'];
+
+document.getElementById('mute-button').addEventListener('click', () => {
+    isMuted = !isMuted;
+});
+
+function playSound() {
+    if (!isMuted) {
+        const audio = new Audio(sounds[Math.floor(Math.random() * sounds.length)]);
+        audio.play();
     }
+}
 
-    function startCounter() {
-        if (counterInterval) clearInterval(counterInterval);
-        counterTime = parseInt(counterInput.value) || 4;
-        counterElement.textContent = counterTime;
-        isCounting = true;
-        counterInterval = setInterval(updateCounter, 1000);
-    }
+let stopwatchInterval;
+let stopwatchTime = 0;
 
-    function resetCounter() {
-        isCounting = false;
-        clearInterval(counterInterval);
-        startCounter();
-    }
-
-    resetStartButton.addEventListener('click', resetCounter);
-
-    muteButton.addEventListener('click', () => {
-        isMuted = !isMuted;
-        muteButton.textContent = isMuted ? 'Unmute' : 'Mute';
-    });
-
-    counterInput.addEventListener('blur', () => {
-        if (!isCounting) {
-            counterTime = parseInt(counterInput.value) || 4;
-            counterElement.textContent = counterTime;
-        }
-    });
-
-    function formatTime(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-        const seconds = String(totalSeconds % 60).padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-    }
-
-    function startStopwatch() {
-        if (stopwatchInterval) clearInterval(stopwatchInterval);
-        stopwatchInterval = setInterval(() => {
-            stopwatchTime += 1000;
-            stopwatchElement.textContent = formatTime(stopwatchTime);
-        }, 1000);
-        isStopwatchRunning = true;
-    }
-
-    function pauseStopwatch() {
-        clearInterval(stopwatchInterval);
-        isStopwatchRunning = false;
-    }
-
-    function stopStopwatch() {
-        clearInterval(stopwatchInterval);
-        stopwatchTime = 0;
-        stopwatchElement.textContent = formatTime(stopwatchTime);
-        isStopwatchRunning = false;
-    }
-
-    startButton.addEventListener('click', startStopwatch);
-    pauseButton.addEventListener('click', pauseStopwatch);
-    stopButton.addEventListener('click', stopStopwatch);
-
-    toggleDocButton.addEventListener('click', () => {
-        trainingLog.classList.toggle('hidden');
-    });
-
-    function saveTrainingLog() {
-        const now = new Date();
-        const duration = formatTime(stopwatchTime);
-        const entry = `On ${now.toLocaleDateString()}, at ${now.toLocaleTimeString()} practiced for ${duration}`;
-        const logEntry = document.createElement('div');
-        logEntry.textContent = entry;
-        trainingLog.appendChild(logEntry);
-    }
-
-    window.addEventListener('beforeunload', saveTrainingLog);
-
-    startCounter();
+document.getElementById('start-stopwatch').addEventListener('click', () => {
     startStopwatch();
 });
+
+document.getElementById('stop-stopwatch').addEventListener('click', () => {
+    stopStopwatch();
+});
+
+document.getElementById('reset-stopwatch').addEventListener('click', () => {
+    resetStopwatch();
+});
+
+function startStopwatch() {
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = setInterval(() => {
+        stopwatchTime++;
+        updateStopwatch();
+    }, 1000);
+}
+
+function stopStopwatch() {
+    clearInterval(stopwatchInterval);
+}
+
+function resetStopwatch() {
+    clearInterval(stopwatchInterval);
+    stopwatchTime = 0;
+    updateStopwatch();
+}
+
+function updateStopwatch() {
+    const minutes = Math.floor(stopwatchTime / 60);
+    const seconds = stopwatchTime % 60;
+    document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
