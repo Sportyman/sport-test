@@ -1,24 +1,13 @@
-// Firebase configuration
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// Firebase imports
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID",
-    measurementId: "YOUR_MEASUREMENT_ID"
-};
+// Firebase configuration
+const app = window.firebaseApp;
+const auth = window.firebaseAuth;
+const db = window.firebaseDb;
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
+// Firebase Auth functions
 async function signIn() {
     const provider = new GoogleAuthProvider();
     try {
@@ -31,15 +20,20 @@ async function signIn() {
     }
 }
 
-async function signOut() {
+async function signOutUser() {
     try {
-        await firebaseSignOut(auth);
+        await signOut(auth);
         document.getElementById('user-info').textContent = '';
     } catch (error) {
         console.error('Error during sign-out:', error);
     }
 }
 
+// Event listeners for sign-in and sign-out
+document.getElementById('login-button').addEventListener('click', signIn);
+document.getElementById('logout-button').addEventListener('click', signOutUser);
+
+// Functions to save and fetch logs
 async function saveLog(uid, duration, category) {
     try {
         await addDoc(collection(db, 'workoutLogs'), {
@@ -71,6 +65,7 @@ async function fetchLogs(uid) {
     }
 }
 
+// Timer functionality
 let countdownInterval;
 let remainingTime;
 let isPaused = false;
