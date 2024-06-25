@@ -3,7 +3,6 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://w
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Firebase configuration
-const app = window.firebaseApp;
 const auth = window.firebaseAuth;
 const db = window.firebaseDb;
 
@@ -100,82 +99,4 @@ function startTimer(duration) {
             remainingTime--;
             updateClock();
             updateTabTitle(remainingTime);
-            if (remainingTime <= 0) {
-                clearInterval(countdownInterval);
-                playSound();
-                saveLog(auth.currentUser.uid, duration, 'default');
-            }
-        }
-    }, 1000);
-}
-
-function pauseTimer() {
-    isPaused = true;
-}
-
-function resumeTimer() {
-    isPaused = false;
-}
-
-function resetTimer() {
-    clearInterval(countdownInterval);
-    document.getElementById('clock').textContent = '30';
-    updateTabTitle(30);
-}
-
-function updateClock() {
-    document.getElementById('clock').textContent = remainingTime;
-}
-
-let isMuted = false;
-const sounds = ['sounds/1.mp3', 'sounds/2.mp3', 'sounds/3.mp3', 'sounds/4.mp3', 'sounds/5.mp3', 'sounds/6.wav'];
-
-document.getElementById('mute-button').addEventListener('click', () => {
-    isMuted = !isMuted;
-});
-
-function playSound() {
-    if (!isMuted) {
-        const audio = new Audio(sounds[Math.floor(Math.random() * sounds.length)]);
-        audio.play();
-    }
-}
-
-let stopwatchInterval;
-let stopwatchTime = 0;
-
-document.getElementById('start-stopwatch').addEventListener('click', () => {
-    startStopwatch();
-});
-
-document.getElementById('stop-stopwatch').addEventListener('click', () => {
-    stopStopwatch();
-});
-
-document.getElementById('reset-stopwatch').addEventListener('click', () => {
-    resetStopwatch();
-});
-
-function startStopwatch() {
-    clearInterval(stopwatchInterval);
-    stopwatchInterval = setInterval(() => {
-        stopwatchTime++;
-        updateStopwatch();
-    }, 1000);
-}
-
-function stopStopwatch() {
-    clearInterval(stopwatchInterval);
-}
-
-function resetStopwatch() {
-    clearInterval(stopwatchInterval);
-    stopwatchTime = 0;
-    updateStopwatch();
-}
-
-function updateStopwatch() {
-    const minutes = Math.floor(stopwatchTime / 60);
-    const seconds = stopwatchTime % 60;
-    document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-}
+           
