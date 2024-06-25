@@ -99,4 +99,78 @@ function startTimer(duration) {
             remainingTime--;
             updateClock();
             updateTabTitle(remainingTime);
-           
+            if (remainingTime <= 0) {
+                clearInterval(countdownInterval);
+                playSound();
+                saveLog(auth.currentUser.uid, duration, 'default');
+            }
+        }
+    }, 1000);
+}
+
+function pauseTimer() {
+    isPaused = true;
+}
+
+function resumeTimer() {
+    isPaused = false;
+}
+
+function resetTimer() {
+    clearInterval(countdownInterval);
+    document.getElementById('clock').textContent = '30';
+    updateTabTitle('');
+}
+
+function updateClock() {
+    document.getElementById('clock').textContent = remainingTime;
+}
+
+// Mute functionality
+let isMuted = false;
+
+document.getElementById('mute-button').addEventListener('click', () => {
+    isMuted = !isMuted;
+    document.getElementById('mute-button').textContent = isMuted ? 'Unmute' : 'Mute';
+});
+
+function playSound() {
+    if (!isMuted) {
+        const audio = new Audio('alarm-sound.mp3'); // Ensure you have an alarm-sound.mp3 file in your project
+        audio.play();
+    }
+}
+
+// Toggle log visibility
+document.getElementById('log-button').addEventListener('click', () => {
+    const calendar = document.getElementById('calendar');
+    calendar.style.display = calendar.style.display === 'none' ? 'block' : 'none';
+});
+
+// Stopwatch functionality
+let stopwatchInterval;
+let stopwatchTime = 0;
+
+document.getElementById('start-stopwatch').addEventListener('click', () => {
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = setInterval(() => {
+        stopwatchTime++;
+        updateStopwatch();
+    }, 1000);
+});
+
+document.getElementById('stop-stopwatch').addEventListener('click', () => {
+    clearInterval(stopwatchInterval);
+});
+
+document.getElementById('reset-stopwatch').addEventListener('click', () => {
+    clearInterval(stopwatchInterval);
+    stopwatchTime = 0;
+    updateStopwatch();
+});
+
+function updateStopwatch() {
+    const minutes = Math.floor(stopwatchTime / 60);
+    const seconds = stopwatchTime % 60;
+    document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
