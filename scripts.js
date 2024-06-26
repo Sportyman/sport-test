@@ -136,7 +136,7 @@ document.getElementById('mute-button').addEventListener('click', () => {
 
 function playSound() {
     if (!isMuted) {
-        const audio = new Audio('alarm-sound.mp3'); // Ensure you have an alarm-sound.mp3 file in your project
+        const audio = new Audio('sounds/finished-sounds/1.mp3'); // Example sound path
         audio.play();
     }
 }
@@ -174,3 +174,50 @@ function updateStopwatch() {
     const seconds = stopwatchTime % 60;
     document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
+
+// Chart.js integration
+import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js";
+
+const ctx = document.getElementById('progress-chart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Workout Progress',
+            data: [],
+            backgroundColor: 'rgba(0, 123, 255, 0.5)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+async function updateChart(uid) {
+    const q = query(collection(db, 'workoutLogs'), where('uid', '==', uid));
+    const querySnapshot = await getDocs(q);
+    const labels = [];
+    const data = [];
+    querySnapshot.forEach((doc) => {
+        const log = doc.data();
+        labels.push(new Date(log.date).toLocaleDateString());
+        data.push(log.duration);
+    });
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+}
+
+// Update chart when user logs in
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        updateChart(user.uid);
+    }
+});
