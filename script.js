@@ -136,12 +136,12 @@ document.getElementById('mute-button').addEventListener('click', () => {
 
 function playSound() {
     if (!isMuted) {
-        const audio = new Audio('sounds/finished-sounds/1.mp3'); // Example sound path
+        const audio = new Audio('sounds/finished-sounds/1.mp3'); // Change this to your actual path
         audio.play();
     }
 }
 
-// Toggle log visibility
+// Log button functionality
 document.getElementById('log-button').addEventListener('click', () => {
     const calendar = document.getElementById('calendar');
     calendar.style.display = calendar.style.display === 'none' ? 'block' : 'none';
@@ -151,23 +151,27 @@ document.getElementById('log-button').addEventListener('click', () => {
 let stopwatchInterval;
 let stopwatchTime = 0;
 
-document.getElementById('start-stopwatch').addEventListener('click', () => {
+document.getElementById('start-stopwatch').addEventListener('click', startStopwatch);
+document.getElementById('stop-stopwatch').addEventListener('click', stopStopwatch);
+document.getElementById('reset-stopwatch').addEventListener('click', resetStopwatch);
+
+function startStopwatch() {
     clearInterval(stopwatchInterval);
     stopwatchInterval = setInterval(() => {
         stopwatchTime++;
         updateStopwatch();
     }, 1000);
-});
+}
 
-document.getElementById('stop-stopwatch').addEventListener('click', () => {
+function stopStopwatch() {
     clearInterval(stopwatchInterval);
-});
+}
 
-document.getElementById('reset-stopwatch').addEventListener('click', () => {
+function resetStopwatch() {
     clearInterval(stopwatchInterval);
     stopwatchTime = 0;
     updateStopwatch();
-});
+}
 
 function updateStopwatch() {
     const minutes = Math.floor(stopwatchTime / 60);
@@ -175,49 +179,7 @@ function updateStopwatch() {
     document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// Chart.js integration
-import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js";
-
-const ctx = document.getElementById('progress-chart').getContext('2d');
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Workout Progress',
-            data: [],
-            backgroundColor: 'rgba(0, 123, 255, 0.5)',
-            borderColor: 'rgba(0, 123, 255, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
-
-async function updateChart(uid) {
-    const q = query(collection(db, 'workoutLogs'), where('uid', '==', uid));
-    const querySnapshot = await getDocs(q);
-    const labels = [];
-    const data = [];
-    querySnapshot.forEach((doc) => {
-        const log = doc.data();
-        labels.push(new Date(log.date).toLocaleDateString());
-        data.push(log.duration);
-    });
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = data;
-    chart.update();
-}
-
-// Update chart when user logs in
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        updateChart(user.uid);
-    }
+// Color input functionality
+document.getElementById('color-input').addEventListener('input', (event) => {
+    document.getElementById('clock').style.color = event.target.value;
 });
