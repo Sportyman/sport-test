@@ -1,7 +1,6 @@
 // Firebase imports
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import Chart from 'https://cdn.jsdelivr.net/npm/chart.js/dist/chart.esm.js';
 
 // Firebase configuration
 const auth = window.firebaseAuth;
@@ -103,7 +102,9 @@ function startTimer(duration) {
             if (remainingTime <= 0) {
                 clearInterval(countdownInterval);
                 playSound();
-                saveLog(auth.currentUser.uid, duration, 'default');
+                if (auth.currentUser) {
+                    saveLog(auth.currentUser.uid, duration, 'default');
+                }
             }
         }
     }, 1000);
