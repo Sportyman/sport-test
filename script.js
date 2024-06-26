@@ -1,6 +1,7 @@
 // Firebase imports
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import Chart from 'https://cdn.jsdelivr.net/npm/chart.js/dist/chart.esm.js';
 
 // Firebase configuration
 const auth = window.firebaseAuth;
@@ -150,36 +151,53 @@ document.getElementById('log-button').addEventListener('click', () => {
 // Stopwatch functionality
 let stopwatchInterval;
 let stopwatchTime = 0;
+let stopwatchRunning = false;
 
-document.getElementById('start-stopwatch').addEventListener('click', startStopwatch);
-document.getElementById('stop-stopwatch').addEventListener('click', stopStopwatch);
-document.getElementById('reset-stopwatch').addEventListener('click', resetStopwatch);
-
-function startStopwatch() {
-    clearInterval(stopwatchInterval);
-    stopwatchInterval = setInterval(() => {
-        stopwatchTime++;
-        updateStopwatch();
-    }, 1000);
+function formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function stopStopwatch() {
-    clearInterval(stopwatchInterval);
-}
+document.getElementById('start-stopwatch').addEventListener('click', () => {
+    if (!stopwatchRunning) {
+        stopwatchRunning = true;
+        stopwatchInterval = setInterval(() => {
+            stopwatchTime++;
+            document.getElementById('stopwatch').textContent = formatTime(stopwatchTime);
+        }, 1000);
+    }
+});
 
-function resetStopwatch() {
+document.getElementById('stop-stopwatch').addEventListener('click', () => {
+    stopwatchRunning = false;
+    clearInterval(stopwatchInterval);
+});
+
+document.getElementById('reset-stopwatch').addEventListener('click', () => {
+    stopwatchRunning = false;
     clearInterval(stopwatchInterval);
     stopwatchTime = 0;
-    updateStopwatch();
-}
+    document.getElementById('stopwatch').textContent = '0:00';
+});
 
-function updateStopwatch() {
-    const minutes = Math.floor(stopwatchTime / 60);
-    const seconds = stopwatchTime % 60;
-    document.getElementById('stopwatch').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-}
-
-// Color input functionality
-document.getElementById('color-input').addEventListener('input', (event) => {
-    document.getElementById('clock').style.color = event.target.value;
+// Chart.js functionality
+const ctx = document.getElementById('progress-chart').getContext('2d');
+const progressChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Workout 1', 'Workout 2', 'Workout 3'],
+        datasets: [{
+            label: 'Duration (seconds)',
+            data: [30, 45, 60],
+            backgroundColor: ['red', 'green', 'blue'],
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
 });
